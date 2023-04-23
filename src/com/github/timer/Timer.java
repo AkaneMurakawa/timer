@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 
 /**
  * 计时器
@@ -11,9 +12,10 @@ import java.awt.event.ActionListener;
  * @author Akane Murakawa
  * @date 2017-8-22
  */
-public class Timer extends JFrame {
+public class Timer extends JFrame implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     /**
      * 界面时间初始显示标签
      */
@@ -41,10 +43,13 @@ public class Timer extends JFrame {
     /**
      * 定义需要的组件
      */
-    JLabel timeJl;
-    JButton countUpJb, resetJb, countDownJb;
-    JPanel timeJp, buttonJp;
-    JTextField countDownJtf;
+    private JLabel timeJl;
+    private JButton countUpJb;
+    private JButton resetJb;
+    private JButton countDownJb;
+    private JPanel timeJp;
+    private JPanel buttonJp;
+    private JTextField countDownJtf;
 
     /**
      * 计数线程类
@@ -61,17 +66,17 @@ public class Timer extends JFrame {
         /**
          * 0表示正计时
          */
-        private int COUNT_UP = 0;
+        private static final int COUNT_UP = 0;
         /**
          * 1表示倒计时
          */
-        private int COUNT_DOWN = 1;
+        private static final int COUNT_DOWN = 1;
         /**
          * 用于多少秒倒计时，初始化為0
          */
         private long timeLongSeconds = 0;
 
-        public CountingThread() {
+        CountingThread() {
             // 守护线程 daemon:n. 妖魔鬼怪; 朋友; 某协议的伺服机 (计算机用语)
             setDaemon(true);
         }
@@ -110,7 +115,10 @@ public class Timer extends JFrame {
          * 例如：00：00：00 000
          */
         private String timeFormat(long pass) {
-            int hour, minute, second, milli;
+            int hour;
+            int minute;
+            int second;
+            int milli;
             milli = (int) (pass % 1000);           // pass为消耗的时间，毫秒单位。转换成多少秒先
             pass = pass / 1000;                    // 此时pass就是一共多少秒
             second = (int) (pass % 60);            // 秒转换成分，余数就是多少秒
@@ -126,11 +134,11 @@ public class Timer extends JFrame {
      * 事件1，正计时
      */
     private ActionListener countUpButtonListener = (ActionEvent e) -> {
-        if (!countDownJb.getText().equals("倒计时")){
+        if (!countDownJb.getText().equals("倒计时")) {
             reset();
         }
 
-        countingThread.timeMode = countingThread.COUNT_UP;
+        countingThread.timeMode = CountingThread.COUNT_UP;
         // 点击开始/点击继续 ——> 显示暂停
         if (countingThread.stopped) {
             // 当点击继续时，计算由暂停——>继续的时间
@@ -151,12 +159,12 @@ public class Timer extends JFrame {
      * 事件2，倒计时
      */
     private ActionListener countDownButtonListener = (ActionEvent e) -> {
-        if (!countUpJb.getText().equals("开始")){
+        if (!countUpJb.getText().equals("开始")) {
             reset();
         }
 
-        countingThread.timeMode = countingThread.COUNT_DOWN;
-        countingThread.timeLongSeconds = countDownSeconds * 1000;
+        countingThread.timeMode = CountingThread.COUNT_DOWN;
+        countingThread.timeLongSeconds = countDownSeconds * 1000L;
         // 点击开始/点击继续 ——> 显示暂停
         if (countingThread.stopped) {
             // 当点击继续时，计算由暂停——>继续的时间
@@ -176,11 +184,9 @@ public class Timer extends JFrame {
     /**
      * 事件3，清除
      */
-    private ActionListener resetButtonListener = (ActionEvent e) -> {
-        reset();
-    };
+    private ActionListener resetButtonListener = (ActionEvent e) -> reset();
 
-    private void reset(){
+    private void reset() {
         pauseTime = startTime;
         pauseCount = 0;
         countingThread.stopped = true;
@@ -192,11 +198,8 @@ public class Timer extends JFrame {
 
     /**
      * 初始化
-     *
-     * @param title
-     * @throws HeadlessException
      */
-    public Timer(String title) throws HeadlessException {
+    Timer(String title) throws HeadlessException {
         // 创建组件
         countUpJb = new JButton("开始");
         countUpJb.setBackground(Color.WHITE);
